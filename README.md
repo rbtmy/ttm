@@ -4,7 +4,6 @@
 
 * git clone 
 * npm i
-* edit example.js
-* nodemon client.js
+* nodemon example.js
 
 You should see an array of tweets
