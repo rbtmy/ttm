@@ -74,39 +74,47 @@ module.exports = class TwitterClient {
                     reject(Error(err));
                 }
 
-                let from_page = JSON.parse(body),
-                    items = from_page.items_html,
-                    $ = cheerio.load(items),
-                    tweets = [];
-
-                this._pointer = from_page.min_position;
-
-                $('div.js-stream-tweet').each(function () {
-                    $(this).filter(function () {
-                        let $ = cheerio.load(this);
-                        let tweet = new Tweet();
-                        tweet.id = $(this).first().attr('data-tweet-id');
-                        tweet.text = $('p.js-tweet-text').first().text();
-                        tweet.date = $('small.time span.js-short-timestamp').first().attr('data-time-ms');
-                        tweet.name = $('span.username.js-action-profile-name b').first().text();
-                        tweet.reTweets = $('span.ProfileTweet-action--retweet span.ProfileTweet-actionCount')
-                            .first().attr('data-tweet-stat-count');
-                        tweet.mentions =
-                        tweet.link = $(this).first().attr('data-permalink-path');
-                        tweet.geoLabel = $('span.Tweet-geo').first().text();
-                        tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
-                            .first().attr('data-tweet-stat-count');
-                        tweets.push(tweet);
-                    });
-                });
-
                 if (response.statusCode === 200) {
-                    resolve(tweets);
+                    resolve(this.tweetsParsing(body));
                 } else {
                     reject(Error(response.statusCode));
                 }
             });
         });
+    }
+
+    /**
+     *
+     * @param responseBody
+     * @returns {Array}
+     */
+    tweetsParsing(responseBody) {
+        let from_page = JSON.parse(responseBody),
+            items = from_page.items_html,
+            $ = cheerio.load(items),
+            tweets = [];
+
+        this._pointer = from_page.min_position;
+
+        $('div.js-stream-tweet').each(function () {
+            $(this).filter(function () {
+                let $ = cheerio.load(this);
+                let tweet = new Tweet();
+                tweet.id = $(this).first().attr('data-tweet-id');
+                tweet.text = $('p.js-tweet-text').first().text();
+                tweet.date = $('small.time span.js-short-timestamp').first().attr('data-time-ms');
+                tweet.name = $('span.username.js-action-profile-name b').first().text();
+                tweet.reTweets = $('span.ProfileTweet-action--retweet span.ProfileTweet-actionCount')
+                    .first().attr('data-tweet-stat-count');
+                tweet.mentions =
+                    tweet.link = $(this).first().attr('data-permalink-path');
+                tweet.geoLabel = $('span.Tweet-geo').first().text();
+                tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
+                    .first().attr('data-tweet-stat-count');
+                tweets.push(tweet);
+            });
+        });
+        return tweets;
     }
 
     /**
@@ -140,4 +148,5 @@ module.exports = class TwitterClient {
     getTweetsCount() {
         return this._tweets.length;
     }
-}
+};
+
