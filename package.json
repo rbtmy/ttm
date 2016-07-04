@@ -28,6 +28,7 @@
     "iojs": ">=1.6.0"
   },
   "dependencies": {
+    "cheerio": ">=0.20.0",
     "koa": "^2.0.0",
     "jade": "^1.11.0",
     "koa-router": "^7.0.1",

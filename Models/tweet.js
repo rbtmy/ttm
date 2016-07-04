@@ -1,27 +1,41 @@
 module.exports = class Tweet {
-    
+
     /**
      *
+     * @param id
      * @param link
      * @param name
      * @param text
      * @param date
      * @param reTweets
      * @param favorites
-     * @param mentions
      * @param geoLabel
-     * @param hashTag
      */
-    constructor(link, name, text, date, reTweets, favorites, mentions, geoLabel, hashTag) {
+    constructor(id, link, name, text, date, reTweets, favorites, geoLabel) {
+        this._id = id;
         this._link = link;
         this._name = name;
         this._text = text;
         this._date = date;
         this._retweets = reTweets;
         this._favorites = favorites;
-        this._mentions = mentions;
         this._geolabel = geoLabel;
-        this._hashtag = hashTag;
+    }
+
+    /**
+     *
+     * @param id
+     */
+    set id(id) {
+        this._id = id;
+    }
+
+    /**
+     *
+     * @returns {*}
+     */
+    get id() {
+        return this._id;
     }
 
     /**
@@ -124,22 +138,6 @@ module.exports = class Tweet {
      *
      * @param m
      */
-    set mentions(m) {
-        this._mentions = m;
-    }
-
-    /**
-     *
-     * @returns {*}
-     */
-    get mentions() {
-        return this._retweets;
-    }
-
-    /**
-     *
-     * @param m
-     */
     set geoLabel(m) {
         this._geolabel = m;
     }
@@ -151,20 +149,5 @@ module.exports = class Tweet {
     get geoLabel() {
         return this._geolabel;
     }
+};
 
-    /**
-     *
-     * @param m
-     */
-    set hashTag(m) {
-        this._hashtag = m;
-    }
-
-    /**
-     *
-     * @returns {*}
-     */
-    get hashTag() {
-        return this._hashtag;
-    }
-}

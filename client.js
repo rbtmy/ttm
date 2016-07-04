@@ -1,4 +1,4 @@
-let tweet = require('./Models/tweet'),
+let Tweet = require('./Models/tweet'),
     cheerio = require('cheerio'),
     request = require('request'),
     co = require('co');
@@ -50,8 +50,8 @@ module.exports = class TwitterClient {
 
     /**
      *
-     * @param pointer
-     * @returns {string}
+     * @param position
+     * @returns {*}
      */
     request(position) {
         let urlAppend = '';
@@ -82,18 +82,23 @@ module.exports = class TwitterClient {
                 this._pointer = from_page.min_position;
 
                 $('div.js-stream-tweet').each(function () {
-                    let data = $(this).filter(function () {
+                    $(this).filter(function () {
                         let $ = cheerio.load(this);
-                        tweets.push($('p.js-tweet-text').first().text());
+                        let tweet = new Tweet();
+                        tweet.id = $(this).first().attr('data-tweet-id');
+                        tweet.text = $('p.js-tweet-text').first().text();
+                        tweet.date = $('small.time span.js-short-timestamp').first().attr('data-time-ms');
+                        tweet.name = $('span.username.js-action-profile-name b').first().text();
+                        tweet.reTweets = $('span.ProfileTweet-action--retweet span.ProfileTweet-actionCount')
+                            .first().attr('data-tweet-stat-count');
+                        tweet.mentions =
+                        tweet.link = $(this).first().attr('data-permalink-path');
+                        tweet.geoLabel = $('span.Tweet-geo').first().text();
+                        tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
+                            .first().attr('data-tweet-stat-count');
+                        tweets.push(tweet);
                     });
                 });
-
-                // $('div.js-stream-tweet').each(function () {
-                //     $(this).filter(function() {
-                //         let $ = cheerio.load(this);
-                //         console.log($('small.time span.js-short-timestamp').first());
-                //     });
-                // });
 
                 if (response.statusCode === 200) {
                     resolve(tweets);

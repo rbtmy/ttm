@@ -1,6 +1,7 @@
-user = require('./Models/user'),
-    twitterUser = new user('greenlool', '2011-01-01', '', '2013-05-05', 100),
-    twitterClient = require('./client');
+User = require('./Models/user'),
+    twitterUser = new User('greenlool', '2011-01-01', '', '2013-05-05', 30),
+    TwitterClient = require('./client');
 
-let client = new twitterClient(twitterUser);
+let client = new TwitterClient(twitterUser);
 client.fetch();
+
