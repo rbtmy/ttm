@@ -1,4 +1,5 @@
-module.exports =  class User {
+module.exports = class User {
+    
     /**
      *
      * @param name
@@ -13,6 +14,18 @@ module.exports =  class User {
         this._until = until;
         this._query = query;
         this._count = count;
+    }
+
+    countValidate(cnt) {
+
+    }
+
+    sinceValidate(since) {
+
+    }
+
+    untilValidate(until) {
+
     }
 
     /**
