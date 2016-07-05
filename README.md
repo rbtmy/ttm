@@ -4,6 +4,12 @@
 
 * git clone 
 * npm i
-* nodemon example.js
+* edit example.js
+* nodemon example.js and catch exaptions=)
 
 You should see an array of tweets
+
+## Koa2
+
+* npm i
+* npm start

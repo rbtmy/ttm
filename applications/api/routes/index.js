@@ -2,23 +2,20 @@ import Router from 'koa-router'
 const router = new Router();
 
 /**
- * /statuses/conditions={"since":"2013-05-05", "until":"2014-05-05", "cnt": count}
- * /statuses/:user
+ * /:user/statuses/:cond={"since":"2013-05-05", "until":"2014-05-05", "cnt": count} count tweets
+ * /:user/statuses all tweets around
  *
  */
-router.get('/statuses/:user', async ctx => {
-    await ctx.render('index')
-}).get('/statuses/', async () => {
-    try {
-        var conditions = {};
-        var query = this.request.query;
+router.get('/:user/statuses/', async ctx => {
 
-        if (query.conditions) {
-            conditions = JSON.parse(query.conditions);
-        }
+});
+
+router.get('/:user/statuses/:cond', async ctx => {
+    try {
+        let query = ctx.params.cond;
     } catch (_error) {
         error = _error;
-        return this.body = error;
+        ctx.body = error;
     }
 });
 
