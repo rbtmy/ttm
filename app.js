@@ -1,18 +1,18 @@
-// import Koa from 'koa'
-// import views from 'koa-views'
-// import serve from 'koa-static'
-// import rootRoutes from './routes/index'
-// import userRoutes from './routes/user'
+ import Koa from 'koa'
+ import views from 'koa-views'
+ import serve from 'koa-static'
+ import apiRoutes from './applications/api/routes/index';
+ import siteRoutes from './applications/site/routes/index';
 
 const app = new Koa();
 
-app.use(views(`${__dirname}/views`, { extension: 'jade' }))
-app.use(serve(`${__dirname}/public`))
-app.use(rootRoutes.routes())
-app.use(userRoutes.routes())
+app.use(views(`${__dirname}/views`, { extension: 'jade' }));
+app.use(serve(`${__dirname}/public`));
+app.use(apiRoutes.routes());
+app.use(siteRoutes.routes());
 
 app.listen(3000, () => {
     console.log('Server running at http://localhost:3000')
-})
+});
 
 export default app

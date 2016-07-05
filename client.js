@@ -1,4 +1,4 @@
-let Tweet = require('./Models/tweet'),
+let Tweet = require('./models/tweet'),
     cheerio = require('cheerio'),
     request = require('request'),
     co = require('co');
