@@ -30,11 +30,10 @@ module.exports = class TwitterClient {
         this.clientLoop = setInterval(() => {
             if (this._pointer === null || this.getTweetsCount() >= this._user.count) {
                 clearInterval(this.clientLoop);
-                console.log(this._tweets);
+                //console.log(this._tweets);
             }
             if (this._block === false) {
                 this.response(this.request(this._pointer)).then(tweets => {
-
                     this._tweets = tweets.reduce(function(coll, item) {
                         coll.push(item);
                         return coll;
@@ -115,6 +114,22 @@ module.exports = class TwitterClient {
             });
         });
         return tweets;
+    }
+
+    /**
+     *
+     * @returns {*}
+     */
+    get user() {
+        return this._user;
+    }
+
+    /**
+     *
+     * @param user
+     */
+    set user(user) {
+        this._user = user;
     }
 
     /**
