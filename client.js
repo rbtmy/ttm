@@ -1,7 +1,8 @@
-let Tweet = require('./models/tweet'),
-    cheerio = require('cheerio'),
-    request = require('request'),
-    co = require('co');
+import Tweet from './models/tweet';
+import cheerio from 'cheerio';
+import request from 'request';
+import co from 'co';
+import moment from 'moment';
 
 const twitterUrl = 'https://twitter.com';
 
@@ -23,28 +24,41 @@ module.exports = class TwitterClient {
         this._block = false;
     }
 
+    registrationDateLocator() {
+        if (this._user.count === 1 && this._user.since === undefined && this._user.until === undefined) {
+            this._user.since = '2004-01-01';
+            //this._user.until = moment().format('YYYY-MM-DD');
+        }
+    }
+
     /**
      *
      */
-    fetch() {
-        this.clientLoop = setInterval(() => {
-            if (this._pointer === null || this.getTweetsCount() >= this._user.count) {
-                clearInterval(this.clientLoop);
-                //console.log(this._tweets);
+    async fetch() {
+        return new Promise((resolve, reject) => {
+            try {
+                this.clientLoop = setInterval(() => {
+                    if (this._pointer === null || this.getTweetsCount() >= this._user.count) {
+                        resolve(this._tweets);
+                        clearInterval(this.clientLoop);
+                    }
+                    if (this._block === false) {
+                        this.response(this.request(this._pointer)).then(tweets => {
+                            this._tweets = tweets.reduce(function (coll, item) {
+                                coll.push(item);
+                                return coll;
+                            }, this._tweets);
+                            this._block = false;
+                        }, error => {
+                            console.error("Unhandled error", error);
+                            clearInterval(this.clientLoop);
+                        });
+                    }
+                }, 100);
+            } catch (e) {
+                reject(e);
             }
-            if (this._block === false) {
-                this.response(this.request(this._pointer)).then(tweets => {
-                    this._tweets = tweets.reduce(function(coll, item) {
-                        coll.push(item);
-                        return coll;
-                    }, this._tweets);
-                    this._block = false;
-                }, error => {
-                    console.error("Unhandled error", error);
-                    clearInterval(this.clientLoop);
-                });
-            }
-        }, 100);
+        });
     }
 
     /**
@@ -55,7 +69,7 @@ module.exports = class TwitterClient {
     request(position) {
         let urlAppend = '';
         urlAppend += `from:${this._user.name} since:${this._user.since} until:${this._user.until}`;
-        return  `${TwitterClient.timeLine}?f=realtime&q=${encodeURIComponent(urlAppend)}&src=typd&max_position=${position}`;
+        return `${TwitterClient.timeLine}?f=realtime&q=${encodeURIComponent(urlAppend)}&src=typd&max_position=${position}`;
     }
 
     /**
@@ -66,13 +80,13 @@ module.exports = class TwitterClient {
     response (req) {
         return new Promise((resolve, reject) => {
             this._block = true;
+            console.log(req);
             request({
                 method: 'GET', url: req
             }, (err, response, body) => {
                 if (err) {
                     reject(Error(err));
                 }
-
                 if (response.statusCode === 200) {
                     resolve(this.tweetsParsing(body));
                 } else {
@@ -105,8 +119,7 @@ module.exports = class TwitterClient {
                 tweet.name = $('span.username.js-action-profile-name b').first().text();
                 tweet.reTweets = $('span.ProfileTweet-action--retweet span.ProfileTweet-actionCount')
                     .first().attr('data-tweet-stat-count');
-                tweet.mentions =
-                    tweet.link = $(this).first().attr('data-permalink-path');
+                tweet.link = `${TwitterClient.twitterUrl}${$(this).first().attr('data-permalink-path')}`;
                 tweet.geoLabel = $('span.Tweet-geo').first().text();
                 tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
                     .first().attr('data-tweet-stat-count');
@@ -130,6 +143,7 @@ module.exports = class TwitterClient {
      */
     set user(user) {
         this._user = user;
+        this.registrationDateLocator();
     }
 
     /**

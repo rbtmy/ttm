@@ -2,6 +2,7 @@ import Router from 'koa-router';
 import User from '../../../models/user'
 import TwitterClient from '../../../client';
 import parser from 'co-body';
+import moment from 'moment';
 
 const router = new Router();
 const twitterClient = new TwitterClient();
@@ -14,7 +15,7 @@ router.post('/statuses/', async ctx => {
     let user = new User();
     let body = await parser(ctx);
 
-    let checkUser = body => {
+    let pushUser = body => {
         if (typeof body.user != 'undefined' && body.since != undefined) {
             user.count = body.count;
             user.name = body.user;
@@ -25,11 +26,11 @@ router.post('/statuses/', async ctx => {
             //console.log(twitterClient.user);
         }
     };
-    await checkUser(body);
+
+    await pushUser(body);
     await twitterClient.fetch();
-    let tweets = twitterClient.tweets;
-        //twitterClient.fetch();
-    await console.log(tweets);
+
+    ctx.body = JSON.stringify(twitterClient.tweets);
 });
 
 /**
@@ -37,9 +38,20 @@ router.post('/statuses/', async ctx => {
  */
 router.get('/statuses/:user/one/', async ctx => {
     let user = new User();
-    user.count = ctx.params.count;
     user.name = ctx.params.user;
-    console.log(user);
+
+    let pushUser = name => {
+        if (typeof name != 'undefined') {
+            user.name = name;
+            user.count = 1;
+            twitterClient.user = user;
+        }
+    };
+
+    await pushUser(user.name);
+    await twitterClient.fetch();
+
+    ctx.body = JSON.stringify(twitterClient.tweets);
 });
 
 export default router
