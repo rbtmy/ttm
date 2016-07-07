@@ -5,13 +5,13 @@ import parser from 'co-body';
 import moment from 'moment';
 
 const router = new Router();
-const twitterClient = new TwitterClient();
 
 router.get('/', async ctx => {
     await ctx.render('index');
 });
 
 router.post('/statuses/', async ctx => {
+    let twitterClient = new TwitterClient();
     let user = new User();
     let body = await parser(ctx);
 
@@ -29,7 +29,7 @@ router.post('/statuses/', async ctx => {
 
     await pushUser(body);
     await twitterClient.fetch();
-
+    await console.log(user);
     ctx.body = JSON.stringify(twitterClient.tweets);
 });
 
@@ -37,13 +37,14 @@ router.post('/statuses/', async ctx => {
  * The first tweet of a user
  */
 router.get('/statuses/:user/one/', async ctx => {
+    let twitterClient = new TwitterClient();
     let user = new User();
     user.name = ctx.params.user;
 
     let pushUser = name => {
-        if (typeof name != 'undefined') {
+        if (typeof name !== 'undefined') {
             user.name = name;
-            user.count = 1;
+            user.count = 999;
             twitterClient.user = user;
         }
     };
