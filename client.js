@@ -53,10 +53,88 @@ export default class TwitterClient {
 
     /**
      *
+     * @param tweet
+     */
+    pullLastTweet(tweet) {
+        if (this._firstTweetFlag === true && this._firstTweet === null) {
+            if (tweet.id) {
+                this._firstTweet = tweet;
+                this._firstTweetFlag = false;
+                console.log(this._firstTweet);
+            }
+        }
+    }
+
+    getFirstTweet() {
+        return this._tweets.pop();
+    }
+
+    /**
+     *
+     * @returns {Promise<T>|Promise}
+     */
+    async fetchOne() {
+        this.isFirstTweet();
+        return new Promise((resolve, reject) => {
+            try {
+                this.clientLoop = setInterval(() => {
+                    if (this._firstTweet !== null) {
+                        console.log(this._firstTweet);
+                        resolve(this._firstTweet);
+                        clearInterval(this.clientLoop);
+                    }
+                    if (this._pointer === null || this.getTweetsCount() >= this._user.count) {
+                        resolve(this._tweets);
+                        clearInterval(this.clientLoop);
+                    }
+                    if (this._block === false) {
+                        this.response(this.request(this._pointer)).then(tweets => {
+                            if (tweets === false) {
+                                if (this._yearPointer > 2015) {
+                                    resolve(this._tweets);
+                                    clearInterval(this.clientLoop);
+                                } else {
+                                    this.findFirstTweet();
+                                }
+                                this._block = false;
+                                // resolve(this._tweets);
+                                // clearInterval(this.clientLoop);
+                            } else {
+                                this._tweets = tweets.reduce(function (coll, item) {
+                                    coll.push(item);
+                                    return coll;
+                                }, this._tweets);
+                                this._block = false;
+                            }
+                        }, error => {
+                            console.error("Unhandled error", error);
+                            clearInterval(this.clientLoop);
+                        });
+                    }
+                }, 100);
+            } catch (e) {
+                reject(e);
+            }
+        });
+
+        if (this._firstTweet === null) {
+            if (this._yearPointer > momen().format('YYYY')) {
+                resolve([this._tweets]);
+                clearInterval(this.clientLoop);
+            } else {
+                this.findFirstTweet();
+            }
+        } else {
+            resolve([this._tweets]);
+            clearInterval(this.clientLoop);
+        }
+    }
+
+    /**
+     *
      * @returns {Promise<T>|Promise}
      */
     async fetch() {
-        this.isFirstTweet();
         return new Promise((resolve, reject) => {
             try {
                 this.clientLoop = setInterval(() => {
@@ -67,19 +145,8 @@ export default class TwitterClient {
                     if (this._block === false) {
                         this.response(this.request(this._pointer)).then(tweets => {
                             if (tweets === false) {
-                                if (this._firstTweet === null) {
-                                    if (this._yearPointer > momen().format('YYYY')) {
-                                        resolve([this._tweets]);
-                                        clearInterval(this.clientLoop);
-                                    } else {
-                                        this.findFirstTweet();
-                                    }
-                                } else {
-                                    resolve([this._tweets]);
-                                    clearInterval(this.clientLoop);
-                                }
-                                // resolve(this._tweets);
-                                // clearInterval(this.clientLoop);
+                                resolve(this._tweets);
+                                clearInterval(this.clientLoop);
                             }
 
                             this._tweets = tweets.reduce(function (coll, item) {
@@ -150,6 +217,8 @@ export default class TwitterClient {
         if (this._pointer !== from_page.min_position) {
             this._pointer = from_page.min_position;
 
+            let fTweet = {};
+
             $('div.js-stream-tweet').each(function () {
                 $(this).filter(function () {
                     let $ = cheerio.load(this);
@@ -165,16 +234,13 @@ export default class TwitterClient {
                     tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
                         .first().attr('data-tweet-stat-count');
 
-                    if (this._firstTweetFlag === true) {
-                        if (tweet.id) {
-                            this._firstTweet = tweet;
-                            this._firstTweetFlag = false;
-                        }
+                    if (fTweet === null) {
+                        fTweet = tweet;
                     }
-
                     tweets.push(tweet);
                 });
             });
+            this.pullLastTweet(fTweet);
             resultStatus = tweets;
         } else {
             resultStatus = false;
