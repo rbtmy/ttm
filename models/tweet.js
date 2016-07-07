@@ -1,4 +1,4 @@
-module.exports = class Tweet {
+export default class Tweet {
 
     /**
      *

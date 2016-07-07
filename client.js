@@ -8,10 +8,12 @@ const twitterUrl = 'https://twitter.com';
 
 const twitterTimeLine = 'https://twitter.com/i/search/timeline';
 
+const timeLineStartPosition = 2004;
+
 /**
  *
  */
-module.exports = class TwitterClient {
+export default class TwitterClient {
 
     /**
      * 
@@ -22,6 +24,13 @@ module.exports = class TwitterClient {
         this._pointer = '';
         this._tweets = [];
         this._block = false;
+
+        this._binaryTreeData = {};
+        this._yearsCount = moment().format('YYYY') - this.timeLineStartPosition;
+        this._monthCount = 12;
+
+        this._binaryTreeData = {'year':(timeLineStartPosition + parseInt(this._yearsCount / 2)), 'month': this._monthCount};
+        console.log(this._binaryTreeData);
     }
 
     registrationDateLocator() {
@@ -95,6 +104,30 @@ module.exports = class TwitterClient {
             });
         });
     }
+
+    foundFirstTweet() {
+        this._user.since = `${this._binaryTreeData['year']}-01-01`;
+        this._user.until = `${this._binaryTreeData['year']}-02-01`;
+        
+        this.clientLoop = setInterval(() => {
+            if (this._pointer === null || this.getTweetsCount() >= this._user.count) {
+                resolve(this._tweets);
+                clearInterval(this.clientLoop);
+            }
+            if (this._block === false) {
+                this.response(this.request(this._pointer)).then(tweets => {
+                    this._tweets = tweets.reduce(function (coll, item) {
+                        coll.push(item);
+                        return coll;
+                    }, this._tweets);
+                    this._block = false;
+                }, error => {
+                    console.error("Unhandled error", error);
+                    clearInterval(this.clientLoop);
+                });
+            }
+        }, 100);
+    };
 
     /**
      *
@@ -176,6 +209,14 @@ module.exports = class TwitterClient {
      */
     getTweetsCount() {
         return this._tweets.length;
+    }
+
+    /**
+     *
+     * @returns {string}
+     */
+    get timeLineStartPosition() {
+        return timeLineStartPosition;
     }
 };
 
