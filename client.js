@@ -3,6 +3,7 @@ import cheerio from 'cheerio';
 import request from 'request';
 import co from 'co';
 import moment from 'moment';
+import empty from 'is-empty';
 
 const twitterUrl = 'https://twitter.com';
 
@@ -24,7 +25,7 @@ export default class TwitterClient {
         this._pointer = '';
         this._tweets = [];
         this._block = false;
-        this._firstTweet = null;
+        this._firstTweet = {};
         this._yearPointer = 2005;
     }
 
@@ -53,18 +54,8 @@ export default class TwitterClient {
 
     /**
      *
-     * @param tweet
+     * @returns {*}
      */
-    pullLastTweet(tweet) {
-        if (this._firstTweetFlag === true && this._firstTweet === null) {
-            if (tweet.id) {
-                this._firstTweet = tweet;
-                this._firstTweetFlag = false;
-                console.log(this._firstTweet);
-            }
-        }
-    }
-
     getFirstTweet() {
         return this._tweets.pop();
     }
@@ -78,11 +69,6 @@ export default class TwitterClient {
         return new Promise((resolve, reject) => {
             try {
                 this.clientLoop = setInterval(() => {
-                    if (this._firstTweet !== null) {
-                        console.log(this._firstTweet);
-                        resolve(this._firstTweet);
-                        clearInterval(this.clientLoop);
-                    }
                     if (this._pointer === null || this.getTweetsCount() >= this._user.count) {
                         resolve(this._tweets);
                         clearInterval(this.clientLoop);
@@ -100,6 +86,10 @@ export default class TwitterClient {
                                 // resolve(this._tweets);
                                 // clearInterval(this.clientLoop);
                             } else {
+                                if (this._yearPointer > 2015) {
+                                    resolve(this._tweets);
+                                    clearInterval(this.clientLoop);
+                                }
                                 this._tweets = tweets.reduce(function (coll, item) {
                                     coll.push(item);
                                     return coll;
@@ -213,35 +203,43 @@ export default class TwitterClient {
             tweets = [];
 
         let resultStatus = true;
+        let fTweet = {};
 
         if (this._pointer !== from_page.min_position) {
             this._pointer = from_page.min_position;
 
-            let fTweet = {};
+            if (this._pointer !== 'TWEET--') {
+                $('div.js-stream-tweet').each(function () {
+                    $(this).filter(function () {
+                        let $ = cheerio.load(this);
+                        let tweet = new Tweet();
+                        tweet.id = $(this).first().attr('data-tweet-id');
+                        tweet.text = $('p.js-tweet-text').first().text();
+                        tweet.date = $('small.time span.js-short-timestamp').first().attr('data-time-ms');
+                        tweet.name = $('span.username.js-action-profile-name b').first().text();
+                        tweet.reTweets = $('span.ProfileTweet-action--retweet span.ProfileTweet-actionCount')
+                            .first().attr('data-tweet-stat-count');
+                        tweet.link = `${TwitterClient.twitterUrl}${$(this).first().attr('data-permalink-path')}`;
+                        tweet.geoLabel = $('span.Tweet-geo').first().text();
+                        tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
+                            .first().attr('data-tweet-stat-count');
 
-            $('div.js-stream-tweet').each(function () {
-                $(this).filter(function () {
-                    let $ = cheerio.load(this);
-                    let tweet = new Tweet();
-                    tweet.id = $(this).first().attr('data-tweet-id');
-                    tweet.text = $('p.js-tweet-text').first().text();
-                    tweet.date = $('small.time span.js-short-timestamp').first().attr('data-time-ms');
-                    tweet.name = $('span.username.js-action-profile-name b').first().text();
-                    tweet.reTweets = $('span.ProfileTweet-action--retweet span.ProfileTweet-actionCount')
-                        .first().attr('data-tweet-stat-count');
-                    tweet.link = `${TwitterClient.twitterUrl}${$(this).first().attr('data-permalink-path')}`;
-                    tweet.geoLabel = $('span.Tweet-geo').first().text();
-                    tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
-                        .first().attr('data-tweet-stat-count');
-
-                    if (fTweet === null) {
-                        fTweet = tweet;
-                    }
-                    tweets.push(tweet);
+                        // if (empty(fTweet) === true) {
+                        //     fTweet = tweet;
+                        //     console.log(tweet);
+                        // }
+                        tweets.push(tweet);
+                    });
                 });
-            });
-            this.pullLastTweet(fTweet);
-            resultStatus = tweets;
+                //console.log(fTweet);
+                // if (fTweet !== null) {
+                //     this.pullLastTweet(fTweet);
+                // }
+                resultStatus = tweets;
+            } else {
+                resultStatus = false;
+            }
+            console.log(this._pointer);
         } else {
             resultStatus = false;
         }

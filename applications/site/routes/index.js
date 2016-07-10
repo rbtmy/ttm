@@ -52,7 +52,7 @@ router.get('/statuses/:user/one/', async ctx => {
     await pushUser(user.name);
     await twitterClient.fetchOne();
 
-    ctx.body = JSON.stringify(twitterClient.getFirstTweet);
+    ctx.body = await JSON.stringify(twitterClient.getFirstTweet());
 });
 
 export default router
