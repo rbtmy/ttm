@@ -30,6 +30,7 @@ router.post('/statuses/', async ctx => {
     await pushUser(body);
     await twitterClient.fetch();
     await console.log(user);
+
     ctx.body = JSON.stringify(twitterClient.tweets);
 });
 
@@ -44,7 +45,7 @@ router.get('/statuses/:user/one/', async ctx => {
     let pushUser = name => {
         if (typeof name !== 'undefined') {
             user.name = name;
-            user.count = 999;
+            user.count = 3500;
             twitterClient.user = user;
         }
     };

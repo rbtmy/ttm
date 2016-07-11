@@ -35,7 +35,7 @@ export default class TwitterClient {
      */
     isFirstTweet() {
         let result = false;
-        if (this._user.count === 999
+        if (this._user.count === 3500
             && this._user.since === undefined
             && this._user.until === undefined) {
             this._user.since = moment({ years: timeLineStartPosition }).format('YYYY-MM-DD');
@@ -68,6 +68,7 @@ export default class TwitterClient {
         this.isFirstTweet();
         return new Promise((resolve, reject) => {
             try {
+                let currentYear = moment().format('YYYY');
                 this.clientLoop = setInterval(() => {
                     if (this._pointer === null || this.getTweetsCount() >= this._user.count) {
                         resolve(this._tweets);
@@ -76,17 +77,15 @@ export default class TwitterClient {
                     if (this._block === false) {
                         this.response(this.request(this._pointer)).then(tweets => {
                             if (tweets === false) {
-                                if (this._yearPointer > 2015) {
+                                if (this._yearPointer > currentYear) {
                                     resolve(this._tweets);
                                     clearInterval(this.clientLoop);
                                 } else {
                                     this.findFirstTweet();
                                 }
                                 this._block = false;
-                                // resolve(this._tweets);
-                                // clearInterval(this.clientLoop);
                             } else {
-                                if (this._yearPointer > 2015) {
+                                if (this._yearPointer > currentYear) {
                                     resolve(this._tweets);
                                     clearInterval(this.clientLoop);
                                 }
@@ -101,23 +100,11 @@ export default class TwitterClient {
                             clearInterval(this.clientLoop);
                         });
                     }
-                }, 100);
+                }, 10);
             } catch (e) {
                 reject(e);
             }
         });
-
-        if (this._firstTweet === null) {
-            if (this._yearPointer > momen().format('YYYY')) {
-                resolve([this._tweets]);
-                clearInterval(this.clientLoop);
-            } else {
-                this.findFirstTweet();
-            }
-        } else {
-            resolve([this._tweets]);
-            clearInterval(this.clientLoop);
-        }
     }
 
     /**
@@ -138,7 +125,6 @@ export default class TwitterClient {
                                 resolve(this._tweets);
                                 clearInterval(this.clientLoop);
                             }
-
                             this._tweets = tweets.reduce(function (coll, item) {
                                 coll.push(item);
                                 return coll;
@@ -149,7 +135,7 @@ export default class TwitterClient {
                             clearInterval(this.clientLoop);
                         });
                     }
-                }, 100);
+                }, 10);
             } catch (e) {
                 reject(e);
             }
@@ -203,7 +189,6 @@ export default class TwitterClient {
             tweets = [];
 
         let resultStatus = true;
-        let fTweet = {};
 
         if (this._pointer !== from_page.min_position) {
             this._pointer = from_page.min_position;
@@ -223,18 +208,9 @@ export default class TwitterClient {
                         tweet.geoLabel = $('span.Tweet-geo').first().text();
                         tweet.favorites = $('span.ProfileTweet-action--favorite span.ProfileTweet-actionCount')
                             .first().attr('data-tweet-stat-count');
-
-                        // if (empty(fTweet) === true) {
-                        //     fTweet = tweet;
-                        //     console.log(tweet);
-                        // }
                         tweets.push(tweet);
                     });
                 });
-                //console.log(fTweet);
-                // if (fTweet !== null) {
-                //     this.pullLastTweet(fTweet);
-                // }
                 resultStatus = tweets;
             } else {
                 resultStatus = false;
@@ -292,30 +268,6 @@ export default class TwitterClient {
      */
     getTweetsCount() {
         return this._tweets.length;
-    }
-
-    /**
-     *
-     * @returns {string}
-     */
-    get timeLineStartPosition() {
-        return timeLineStartPosition;
-    }
-
-    /**
-     *
-     * @param flag
-     */
-    set firstTweetFlag(flag) {
-        this._firstTweetFlag = flag;
-    }
-
-    /**
-     *
-     * @returns {string}
-     */
-    get firstTweetFlag() {
-        return this._firstTweetFlag;
     }
 };
 
