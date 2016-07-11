@@ -5,7 +5,20 @@
  import apiRoutes from './applications/api/routes/index'
  import siteRoutes from './applications/site/routes/index'
  import Tweet from './models/tweet'
+ import session from "koa-session2";
+ import Store from "./store.js";
+
  const app = new Koa();
+
+ app.use(session({
+  store: new Store()
+ }));
+
+ app.use(ctx => {
+  let user = ctx.session.user;
+
+  ctx.session.view = "index";
+ });
 
  app.use(views(`${__dirname}/views`, { extension: 'jade' }));
  app.use(serve(`${__dirname}/public`));

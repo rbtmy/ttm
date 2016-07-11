@@ -3,6 +3,7 @@ import User from '../../../models/user'
 import TwitterClient from '../../../client';
 import parser from 'co-body';
 import moment from 'moment';
+import empty from 'is-empty';
 
 const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
@@ -18,13 +19,19 @@ router.post('/statuses/', async ctx => {
 
     let pushUser = body => {
         if (typeof body.user != 'undefined' && body.since != undefined) {
-            user.count = body.count;
+            if (empty(body.count)) {
+                user.count = firstTweetCountSearchedTweets;
+            } else {
+                user.count = body.count;
+            }
             user.name = body.user;
             user.since = body.since;
-            user.until = body.until;
-            //console.log(user);
+            if (empty(body.until)) {
+                user.until = moment().format('YYYY-MM-DD');
+            } else {
+                user.until = body.until;
+            }
             twitterClient.user = user;
-            //console.log(twitterClient.user);
         }
     };
 
