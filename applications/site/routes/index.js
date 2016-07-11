@@ -5,6 +5,7 @@ import parser from 'co-body';
 import moment from 'moment';
 
 const router = new Router();
+const firstTweetCountSearchedTweets = 3500;
 
 router.get('/', async ctx => {
     await ctx.render('index');
@@ -45,7 +46,7 @@ router.get('/statuses/:user/one/', async ctx => {
     let pushUser = name => {
         if (typeof name !== 'undefined') {
             user.name = name;
-            user.count = 3500;
+            user.count = firstTweetCountSearchedTweets;
             twitterClient.user = user;
         }
     };
