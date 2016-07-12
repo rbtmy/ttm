@@ -14,47 +14,64 @@ export default class ApiCache {
      */
     constructor() {
         this.redis = redis;
+        this._cachedValue = '';
     }
 
     /**
      *
-     * @param queries
-     * @param twitterUser
-     * @returns {*}
+     * @param params
+     * @returns {Promise<T>|Promise}
      */
-    async get(queries, twitterUser) {
-        await this.redis.get(ApiCache.createKey(queries, twitterUser)).then(result => {
-            return result;
+    async get(params) {
+        let key = ApiCache.getHash(params);
+        return new Promise((resolve, reject) => {
+            this.redis.get(key).then(result => {
+                this._cachedValue = result;
+                resolve(result);
+            }, error => {
+                reject({});
+            });
         });
     }
 
     /**
      *
-     * @param queries
-     * @param twitterUser
+     * @param params
      * @param data
+     * @returns {boolean}
      */
-    async set(queries, twitterUser, data) {
-        await this.redis.set(ApiCache.createKey(queries, twitterUser), JSON.stringify(data));
+    async set(params, data) {
+        if (empty(params.user) === false) {
+            let key = ApiCache.getHash(params);
+            await this.redis.set(key, JSON.stringify(data));
+            return true;
+        }
+        return false;
     }
 
     /**
      *
-     * @param queries
-     * @param twitterUser
+     * @param params
      * @returns {*}
      */
-    async destroy(queries, twitterUser) {
-        return await this.redis.del(ApiCache.createKey(queries, twitterUser));
+    async destroy(params) {
+        let key = ApiCache.getHash(params);
+        return await this.redis.del(key);
     }
 
     /**
      *
-     * @param queries
-     * @param twitterUser
-     * @returns {*}
+     * @param params
      */
-    static createKey(queries, twitterUser) {
-        return `${queries}-${twitterUser}`;
+    static getHash(params) {
+        return hash(params);
+    }
+
+    /**
+     *
+     * @returns {*|string}
+     */
+    get cachedValue() {
+        return this._cachedValue;
     }
 }

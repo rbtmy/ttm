@@ -50,8 +50,15 @@ router.post('/statuses/', async ctx => {
     await pushUser(body);
     await twitterClient.fetch();
     await console.log(user);
-    await apiCache.set(`${user.since}-${user.until}-${user.count}`, twitterClient.user.name, twitterClient.tweets);
-    await console.log(apiCache.get(`${user.since}-${user.until}-${user.count}`, twitterClient.user.name));
+    let cachedParams = {
+        since: user.since,
+        until: user.until,
+        count: user.count,
+        user: twitterClient.user.name
+    };
+    await apiCache.set(cachedParams, twitterClient.tweets);
+    await apiCache.get(cachedParams);
+    await console.log(apiCache.cachedValue);
     ctx.body = JSON.stringify(twitterClient.tweets);
 });
 
