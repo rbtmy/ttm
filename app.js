@@ -11,15 +11,15 @@
 
  const app = new Koa();
 
- app.use(session({
-  store: new Store(redis)
- }));
-
- app.use(ctx => {
-  let user = ctx.session.user;
-
-  ctx.session.view = "index";
- });
+ // app.use(session({
+ //  store: new Store(redis)
+ // }));
+ //
+ // app.use(ctx => {
+ //  let user = ctx.session.user;
+ //
+ //  ctx.session.view = "index";
+ // });
 
  app.use(views(`${__dirname}/views`, { extension: 'jade' }));
  app.use(serve(`${__dirname}/public`));

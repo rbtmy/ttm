@@ -9,7 +9,6 @@ import empty from 'is-empty';
 const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
 
-
 router.get('/', async ctx => {
     await ctx.render('index');
 });
@@ -23,22 +22,20 @@ router.get('/', async ctx => {
  * In response, the server will send to his 18 tweets.
  * Next request should be a POST user=robotomize&since=2014-05-05&offset=1, the server will return another 18 tweets
  */
-
 router.post('/statuses/', async ctx => {
     let twitterClient = new TwitterClient();
     let user = new User();
     let body = await parser(ctx);
+    let apiCache = new ApiCache();
 
     let pushUser = body => {
         if (typeof body.user != 'undefined' && body.since != undefined) {
-
-
-
             if (empty(body.count)) {
                 user.count = firstTweetCountSearchedTweets;
             } else {
                 user.count = body.count;
             }
+
             user.name = body.user;
             user.since = body.since;
             if (empty(body.until)) {
@@ -53,7 +50,8 @@ router.post('/statuses/', async ctx => {
     await pushUser(body);
     await twitterClient.fetch();
     await console.log(user);
-
+    await apiCache.set(`${user.since}-${user.until}-${user.count}`, twitterClient.user.name, twitterClient.tweets);
+    await console.log(apiCache.get(`${user.since}-${user.until}-${user.count}`, twitterClient.user.name));
     ctx.body = JSON.stringify(twitterClient.tweets);
 });
 

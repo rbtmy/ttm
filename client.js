@@ -5,10 +5,22 @@ import co from 'co';
 import moment from 'moment';
 import empty from 'is-empty';
 
+/**
+ *
+ * @type {string}
+ */
 const twitterUrl = 'https://twitter.com';
 
+/**
+ * Static timeline link
+ * @type {string}
+ */
 const twitterTimeLine = 'https://twitter.com/i/search/timeline';
 
+/**
+ * Twitter at
+ * @type {number}
+ */
 const timeLineStartPosition = 2004;
 
 /**
@@ -46,6 +58,9 @@ export default class TwitterClient {
         return result;
     }
 
+    /**
+     *
+     */
     findFirstTweet() {
         this._yearPointer += 1;
         this._user.until = moment({ years: this._yearPointer }).format('YYYY-MM-DD');
@@ -180,7 +195,7 @@ export default class TwitterClient {
     /**
      *
      * @param responseBody
-     * @returns {Array}
+     * @returns {boolean}
      */
     tweetsParsing(responseBody) {
         let from_page = JSON.parse(responseBody),

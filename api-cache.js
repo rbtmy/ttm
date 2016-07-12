@@ -1,13 +1,13 @@
 import empty from 'is-empty';
 import Redis from 'ioredis';
 import redis from './configs/redis';
-
+import hash from 'object-hash';
 /**
  * Redis api cache
  *
  */
 
-class ApiCache {
+export default class ApiCache {
 
     /**
      *
@@ -16,11 +16,16 @@ class ApiCache {
         this.redis = redis;
     }
 
-    /*8
-
+    /**
+     *
+     * @param queries
+     * @param twitterUser
+     * @returns {*}
      */
     async get(queries, twitterUser) {
-        return await this.redis.get(ApiCache.createKey(queries, twitterUser));
+        await this.redis.get(ApiCache.createKey(queries, twitterUser)).then(result => {
+            return result;
+        });
     }
 
     /**
@@ -30,9 +35,7 @@ class ApiCache {
      * @param data
      */
     async set(queries, twitterUser, data) {
-        if (empty(this.get(this.createKey(queries, twitterUser)))) {
-            await this.redis.add(ApiCache.createKey(queries, twitterUser), data);
-        }
+        await this.redis.set(ApiCache.createKey(queries, twitterUser), JSON.stringify(data));
     }
 
     /**
