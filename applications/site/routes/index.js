@@ -9,6 +9,7 @@ import empty from 'is-empty';
 const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
 
+
 router.get('/', async ctx => {
     await ctx.render('index');
 });

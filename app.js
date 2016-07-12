@@ -7,11 +7,12 @@
  import Tweet from './models/tweet'
  import session from "koa-session2";
  import Store from "./store.js";
+ import redis from './configs/redis';
 
  const app = new Koa();
 
  app.use(session({
-  store: new Store()
+  store: new Store(redis)
  }));
 
  app.use(ctx => {

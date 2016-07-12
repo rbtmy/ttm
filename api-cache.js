@@ -1,4 +1,6 @@
 import empty from 'is-empty';
+import Redis from 'ioredis';
+import redis from './configs/redis';
 
 /**
  * Redis api cache
@@ -11,7 +13,7 @@ class ApiCache {
      *
      */
     constructor() {
-        this.redis = new Redis();
+        this.redis = redis;
     }
 
     /*8
