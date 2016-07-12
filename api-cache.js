@@ -7,6 +7,9 @@ import hash from 'object-hash';
  *
  */
 
+/**
+ * ApiCache class
+ */
 export default class ApiCache {
 
     /**
@@ -26,7 +29,7 @@ export default class ApiCache {
         let key = ApiCache.getHash(params);
         return new Promise((resolve, reject) => {
             this.redis.get(key).then(result => {
-                this._cachedValue = result;
+                this._cachedValue = JSON.parse(result);
                 resolve(result);
             }, error => {
                 reject({});

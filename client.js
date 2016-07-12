@@ -32,13 +32,27 @@ export default class TwitterClient {
      * 
      * @param user
      */
-    constructor(user) {
+    constructor(user, cache) {
         this._user =  user;
         this._pointer = '';
         this._tweets = [];
         this._block = false;
         this._firstTweet = {};
         this._yearPointer = 2005;
+        this._cache = new cache();
+        this._cachedParams = {};
+    }
+
+    /**
+     *
+     */
+    cacheInit() {
+        this._cachedParams = {
+            since: this._user.since,
+            until: this._user.until,
+            count: this._user.count,
+            user: this._user.name
+        };
     }
 
     /**
@@ -127,6 +141,7 @@ export default class TwitterClient {
      * @returns {Promise<T>|Promise}
      */
     async fetch() {
+        this.cacheInit();
         return new Promise((resolve, reject) => {
             try {
                 this.clientLoop = setInterval(() => {
@@ -144,6 +159,7 @@ export default class TwitterClient {
                                 coll.push(item);
                                 return coll;
                             }, this._tweets);
+                            this._cache.set(this._cachedParams, this._tweets);
                             this._block = false;
                         }, error => {
                             console.error("Unhandled error", error);

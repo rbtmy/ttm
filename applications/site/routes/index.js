@@ -8,6 +8,24 @@ import empty from 'is-empty';
 
 const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
+const offsetPage = 18;
+
+/**
+ *
+ * @param offset
+ * @returns {{}}
+ */
+function offsetTranslateToTweets(offset) {
+    let twsSeq = {};
+    if (offset === 0) {
+        twsSeq = {start: 0, end: offsetPage}
+    } else {
+        let start = offset * offsetPage;
+        let end = start + offsetPage;
+        twsSeq = {start: start, end: end};
+    }
+    return twsSeq;
+}
 
 router.get('/', async ctx => {
     await ctx.render('index');
@@ -23,11 +41,11 @@ router.get('/', async ctx => {
  * Next request should be a POST user=robotomize&since=2014-05-05&offset=1, the server will return another 18 tweets
  */
 router.post('/statuses/', async ctx => {
-    let twitterClient = new TwitterClient();
+    let twitterClient = new TwitterClient({}, ApiCache);
     let user = new User();
     let body = await parser(ctx);
     let apiCache = new ApiCache();
-
+    let offset = body.offset;
     let pushUser = body => {
         if (typeof body.user != 'undefined' && body.since != undefined) {
             if (empty(body.count)) {
@@ -48,18 +66,35 @@ router.post('/statuses/', async ctx => {
     };
 
     await pushUser(body);
-    await twitterClient.fetch();
-    await console.log(user);
+
+    twitterClient.fetch();
+
     let cachedParams = {
         since: user.since,
         until: user.until,
         count: user.count,
         user: twitterClient.user.name
     };
-    await apiCache.set(cachedParams, twitterClient.tweets);
+
+    /**
+     * Waiting for data from cache
+     */
     await apiCache.get(cachedParams);
-    await console.log(apiCache.cachedValue);
-    ctx.body = JSON.stringify(twitterClient.tweets);
+
+    let tweets = apiCache.cachedValue;
+
+    if (empty(offset)) {
+        offset = 0;
+    }
+
+    let twSeq = offsetTranslateToTweets(offset);
+    if (empty(twSeq) === false) {
+        console.log(tweets.slice(0,10));
+        ctx.body = JSON.stringify(tweets.slice(twSeq.start, twSeq.end));
+    }
+    //await console.log(apiCache.cachedValue);
+
+
 });
 
 /**
