@@ -1,6 +1,7 @@
 import Router from 'koa-router';
 import User from '../../../models/user'
 import TwitterClient from '../../../client';
+import ApiCache from '../../../api-cache';
 import parser from 'co-body';
 import moment from 'moment';
 import empty from 'is-empty';
@@ -29,6 +30,9 @@ router.post('/statuses/', async ctx => {
 
     let pushUser = body => {
         if (typeof body.user != 'undefined' && body.since != undefined) {
+
+
+
             if (empty(body.count)) {
                 user.count = firstTweetCountSearchedTweets;
             } else {
