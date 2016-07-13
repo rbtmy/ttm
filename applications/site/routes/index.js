@@ -67,8 +67,6 @@ router.post('/statuses/', async ctx => {
 
     await pushUser(body);
 
-    twitterClient.fetch();
-
     let cachedParams = {
         since: user.since,
         until: user.until,
@@ -82,6 +80,10 @@ router.post('/statuses/', async ctx => {
     await apiCache.get(cachedParams);
 
     let tweets = apiCache.cachedValue;
+
+    if (tweets.length === 0) {
+        twitterClient.fetch();
+    }
 
     if (empty(offset)) {
         offset = 0;
