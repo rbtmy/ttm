@@ -5,7 +5,7 @@ import ApiCache from '../../../api-cache';
 import parser from 'co-body';
 import moment from 'moment';
 import empty from 'is-empty';
-
+import hash from 'hash-object';
 const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
 const offsetPage = 18;
@@ -74,15 +74,25 @@ router.post('/statuses/', async ctx => {
         user: twitterClient.user.name
     };
 
+    let hashKey = hash(cachedParams);
+
+    //await apiCache.destroy(cachedParams);
+    //process.exit();
     /**
      * Waiting for data from cache
      */
     await apiCache.get(cachedParams);
 
-    let tweets = apiCache.cachedValue;
+    let tweets = await apiCache.cachedValue;
 
-    if (tweets.length === 0) {
+    if (tweets === null) {
         twitterClient.fetch();
+
+        /**
+         * Waiting for data from cache
+         */
+        await apiCache.get(cachedParams);
+        tweets = apiCache.cachedValue;
     }
 
     if (empty(offset)) {
