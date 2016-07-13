@@ -4,7 +4,8 @@ import request from 'request';
 import co from 'co';
 import moment from 'moment';
 import empty from 'is-empty';
-
+import hash from 'object-hash';
+import Redis from 'ioredis';
 /**
  *
  * @type {string}
@@ -29,8 +30,9 @@ const timeLineStartPosition = 2004;
 export default class TwitterClient {
 
     /**
-     * 
+     *
      * @param user
+     * @param cache
      */
     constructor(user, cache) {
         this._user =  user;
@@ -41,6 +43,7 @@ export default class TwitterClient {
         this._yearPointer = 2005;
         this._cache = new cache();
         this._cachedParams = {};
+        this._redis = new Redis();
     }
 
     /**
@@ -160,6 +163,7 @@ export default class TwitterClient {
                                 return coll;
                             }, this._tweets);
                             this._cache.set(this._cachedParams, this._tweets);
+                            this._redis.publish('tweets', hash(this._cachedParams));
                             this._block = false;
                         }, error => {
                             console.error("Unhandled error", error);

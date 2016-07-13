@@ -5,7 +5,9 @@ import ApiCache from '../../../api-cache';
 import parser from 'co-body';
 import moment from 'moment';
 import empty from 'is-empty';
-import hash from 'hash-object';
+import hash from 'object-hash';
+import Redis from 'ioredis';
+
 const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
 const offsetPage = 18;
@@ -84,26 +86,43 @@ router.post('/statuses/', async ctx => {
     await apiCache.get(cachedParams);
 
     let tweets = await apiCache.cachedValue;
+    let redis = new Redis();
+    redis.subscribe('tweets', function (err, count) {
 
+    });
     if (tweets === null) {
         twitterClient.fetch();
+        redis.on('message',  (channel, message) => {
+            console.log('ok');
+            /**
+             * Waiting for data from cache
+             */
+                //apiCache.get(cachedParams);
+                //tweets = apiCache.cachedValue;
+                //if (empty(offset)) {
+                //    offset = 0;
+                //}
+                //
+                //let twSeq = offsetTranslateToTweets(offset);
+                //if (empty(twSeq) === false) {
+                //    console.log(tweets.slice(0,10));
+                //    ctx.body = JSON.stringify(tweets.slice(twSeq.start, twSeq.end));
+                //}
+            console.log('Receive message %s from channel %s', message, channel);
+        });
+    } else {
+        if (empty(offset)) {
+            offset = 0;
+        }
 
-        /**
-         * Waiting for data from cache
-         */
-        await apiCache.get(cachedParams);
-        tweets = apiCache.cachedValue;
+        let twSeq = offsetTranslateToTweets(offset);
+        if (empty(twSeq) === false) {
+            console.log(tweets.slice(0,10));
+            ctx.body = JSON.stringify(tweets.slice(twSeq.start, twSeq.end));
+        }
     }
 
-    if (empty(offset)) {
-        offset = 0;
-    }
 
-    let twSeq = offsetTranslateToTweets(offset);
-    if (empty(twSeq) === false) {
-        console.log(tweets.slice(0,10));
-        ctx.body = JSON.stringify(tweets.slice(twSeq.start, twSeq.end));
-    }
     //await console.log(apiCache.cachedValue);
 
 
