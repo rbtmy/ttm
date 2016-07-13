@@ -6,28 +6,13 @@ import parser from 'co-body';
 import moment from 'moment';
 import empty from 'is-empty';
 import hash from 'object-hash';
-import Redis from 'ioredis';
+import {redisInstance} from '../../../configs/redis';
 
 const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
 const offsetPage = 18;
+const redis = redisInstance();
 
-/**
- *
- * @param offset
- * @returns {{}}
- */
-function offsetTranslateToTweets(offset) {
-    let twsSeq = {};
-    if (offset === 0) {
-        twsSeq = {start: 0, end: offsetPage}
-    } else {
-        let start = offset * offsetPage;
-        let end = start + offsetPage;
-        twsSeq = {start: start, end: end};
-    }
-    return twsSeq;
-}
 
 router.get('/', async ctx => {
     await ctx.render('index');
@@ -77,55 +62,53 @@ router.post('/statuses/', async ctx => {
     };
 
     let hashKey = hash(cachedParams);
+    //
+    // await apiCache.destroy(cachedParams);
+    // process.exit();
 
-    //await apiCache.destroy(cachedParams);
-    //process.exit();
-    /**
-     * Waiting for data from cache
-     */
     await apiCache.get(cachedParams);
 
     let tweets = await apiCache.cachedValue;
-    let redis = new Redis();
+
     redis.subscribe('tweets', function (err, count) {
 
     });
+
     if (tweets === null) {
         twitterClient.fetch();
-        redis.on('message',  (channel, message) => {
-            console.log('ok');
-            /**
-             * Waiting for data from cache
-             */
-                //apiCache.get(cachedParams);
-                //tweets = apiCache.cachedValue;
-                //if (empty(offset)) {
-                //    offset = 0;
-                //}
-                //
-                //let twSeq = offsetTranslateToTweets(offset);
-                //if (empty(twSeq) === false) {
-                //    console.log(tweets.slice(0,10));
-                //    ctx.body = JSON.stringify(tweets.slice(twSeq.start, twSeq.end));
-                //}
-            console.log('Receive message %s from channel %s', message, channel);
-        });
+        let getTweets = () => {
+            return new Promise((resolve, reject) => {
+                redis.on('message', async(channel, message) => {
+                    if (channel === 'tweets' && message === hashKey) {
+                        try {
+                            await apiCache.get(cachedParams);
+                            tweets = apiCache.cachedValue;
+                            if (empty(offset)) {
+                                offset = 0;
+                            }
+
+                            let twSeq = offsetTranslateToTweets(offset);
+                            if (empty(twSeq) === false) {
+                                resolve(JSON.stringify(tweets.slice(twSeq.start, twSeq.end)));
+                            }
+                        } catch (e) {
+                            reject(e);
+                        }
+                    }
+                });
+            });
+        }
+        let tweets = await getTweets();
+        ctx.body = tweets;
     } else {
         if (empty(offset)) {
             offset = 0;
         }
-
         let twSeq = offsetTranslateToTweets(offset);
         if (empty(twSeq) === false) {
-            console.log(tweets.slice(0,10));
             ctx.body = JSON.stringify(tweets.slice(twSeq.start, twSeq.end));
         }
     }
-
-
-    //await console.log(apiCache.cachedValue);
-
-
 });
 
 /**
@@ -134,6 +117,7 @@ router.post('/statuses/', async ctx => {
 router.get('/statuses/:user/one/', async ctx => {
     let twitterClient = new TwitterClient();
     let user = new User();
+    let apiCache = new ApiCache();
     user.name = ctx.params.user;
 
     let pushUser = name => {
@@ -144,10 +128,39 @@ router.get('/statuses/:user/one/', async ctx => {
         }
     };
 
+    let cachedParams = {
+        since: user.since,
+        until: user.until,
+        count: user.count,
+        user: twitterClient.user.name
+    };
+
     await pushUser(user.name);
     await twitterClient.fetchOne();
-
-    ctx.body = await JSON.stringify(twitterClient.getFirstTweet());
+    let tweet = await JSON.stringify(twitterClient.getFirstTweet());
+    apiCache.set(cachedParams, JSON.stringify(tweet));
+    ctx.body = tweet;
 });
+
+/**
+ *
+ * @param offset
+ * @returns {{}}
+ */
+function offsetTranslateToTweets(offset) {
+    let twsSeq = {};
+    if (offset === 0) {
+        twsSeq = {start: 0, end: offsetPage}
+    } else {
+        let start = offset * offsetPage;
+        let end = start + offsetPage;
+        twsSeq = {start: start, end: end};
+    }
+    return twsSeq;
+}
+
+function pushToCache() {
+
+}
 
 export default router

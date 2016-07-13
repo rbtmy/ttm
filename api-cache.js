@@ -43,13 +43,38 @@ export default class ApiCache {
      * @param data
      * @returns {boolean}
      */
-    async set(params, data) {
+    async set(params, data, salt = undefined) {
         if (empty(params.user) === false) {
             let key = ApiCache.getHash(params);
             await this.redis.set(key, JSON.stringify(data));
             return true;
         }
         return false;
+    }
+
+    /**
+     *
+     * @param username
+     * @param tweet
+     * @returns {boolean}
+     */
+    async setFirstTweet(username, tweet) {
+        if (empty(username) === false && empty(tweet) === false) {
+            await this.redis.set(username, JSON.stringify(tweet));
+            return true;
+        }
+        return false;
+    }
+
+    async getFirstTweet(username) {
+        return new Promise((resolve, reject) => {
+            this.redis.get(key).then(result => {
+                this._cachedValue = JSON.parse(result);
+                resolve(result);
+            }, error => {
+                reject({});
+            });
+        });
     }
 
     /**

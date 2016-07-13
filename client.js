@@ -5,7 +5,9 @@ import co from 'co';
 import moment from 'moment';
 import empty from 'is-empty';
 import hash from 'object-hash';
-import Redis from 'ioredis';
+import {redisInstance} from './configs/redis';
+
+
 /**
  *
  * @type {string}
@@ -43,7 +45,7 @@ export default class TwitterClient {
         this._yearPointer = 2005;
         this._cache = new cache();
         this._cachedParams = {};
-        this._redis = new Redis();
+        this._redis = redisInstance();
     }
 
     /**
