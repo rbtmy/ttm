@@ -1,15 +1,10 @@
 # ttm
 
-### How to use now
+### How to use this app
 
 * git clone 
 * npm i
-* edit example.js
-* nodemon example.js and catch exaptions=)
+* nodemon index.js
+* start the server with the API
 
-You should see an array of tweets
 
-## Koa2
-
-* npm i
-* npm start

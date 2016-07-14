@@ -2,18 +2,16 @@ import empty from 'is-empty';
 import Redis from 'ioredis';
 import redis from './configs/redis';
 import hash from 'object-hash';
-/**
- * Redis api cache
- *
- */
 
 /**
  * ApiCache class
+ *
+ * Redis api cache
  */
 export default class ApiCache {
 
     /**
-     *
+     * Methods of caching data API
      */
     constructor() {
         this.redis = redis;
@@ -39,6 +37,7 @@ export default class ApiCache {
      *
      * @param params
      * @param data
+     * @param salt
      * @returns {boolean}
      */
     async set(params, data, salt = undefined) {
@@ -48,6 +47,16 @@ export default class ApiCache {
             return true;
         }
         return false;
+    }
+
+    /**
+     *
+     * @param params
+     * @returns {*}
+     */
+    async destroy(params) {
+        let key = ApiCache.getHash(params);
+        return await this.redis.del(key);
     }
 
     /**
@@ -85,6 +94,15 @@ export default class ApiCache {
     /**
      *
      * @param username
+     * @returns {*}
+     */
+    async deleteFirstTweet(username) {
+        return await this.redis.del(username);
+    }
+
+    /**
+     *
+     * @param username
      * @param count
      * @returns {boolean}
      */
@@ -116,12 +134,11 @@ export default class ApiCache {
 
     /**
      *
-     * @param params
+     * @param username
      * @returns {*}
      */
-    async destroy(params) {
-        let key = ApiCache.getHash(params);
-        return await this.redis.del(key);
+    async deleteUserViews(username) {
+        return await this.redis.del(`view-${username}`);
     }
 
     /**
