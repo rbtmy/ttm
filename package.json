@@ -24,7 +24,9 @@
     "is-empty": ">=1.0.0",
     "cheerio": "^0.20.0",
     "koa-session2": "^1.0.7",
-    "moment": ">=2.14.1"
+    "moment": ">=2.14.1",
+    "koa-useragent": ">=0.1.4",
+    "validator": "^5.4.0"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.1.2",
