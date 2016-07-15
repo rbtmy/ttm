@@ -8,18 +8,9 @@
  import session from "koa-session2";
  import Store from "./store.js";
  import redis from './configs/redis';
+ import userAgent from 'koa-useragent';
 
  const app = new Koa();
-
- // app.use(session({
- //  store: new Store(redis)
- // }));
- //
- // app.use(ctx => {
- //  let user = ctx.session.user;
- //
- //  ctx.session.view = "index";
- // });
 
  app.use(views(`${__dirname}/views`, { extension: 'jade' }));
  app.use(serve(`${__dirname}/public`));
