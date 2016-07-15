@@ -19,8 +19,8 @@ const redis = redisInstance();
  */
 let setUsernameView = async username => {
     username = username.replace(/^@/, '');
-    let apiCache = new ApiCache();
-    let view = await apiCache.getUserViews(username);
+    let apiCache = new ApiCache(),
+        view = await apiCache.getUserViews(username);
     console.log(view);
     if (view === null) {
         apiCache.setUserView(username, 1);
@@ -42,11 +42,11 @@ let setUsernameView = async username => {
 
 
 router.post('/statuses/', async ctx => {
-    let twitterClient = new TwitterClient({}, ApiCache);
-    let user = new User();
-    let body = await parser(ctx);
-    let apiCache = new ApiCache();
-    let offset = body.offset;
+    let twitterClient = new TwitterClient({}, ApiCache),
+        user = new User(),
+        body = await parser(ctx),
+        apiCache = new ApiCache(),
+        offset = body.offset;
     let pushUser = body => {
         if (typeof body.user != 'undefined' && body.since != undefined) {
             if (empty(body.count)) {
@@ -75,16 +75,11 @@ router.post('/statuses/', async ctx => {
         user: twitterClient.user.name
     };
 
-    let hashKey = hash(cachedParams);
-
-    //
-    // await apiCache.destroy(cachedParams);
-    // await apiCache.deleteUserViews(user.name);
-    // process.exit();
-
-    let tweets = await apiCache.get(cachedParams);
+    let hashKey = hash(cachedParams),
+        tweets = await apiCache.get(cachedParams);
     await setUsernameView(user.name);
-    redis.subscribe('tweets', function (err, count) {
+
+    redis.subscribe('tweets', (err, count) => {
 
     });
 
@@ -128,9 +123,9 @@ router.post('/statuses/', async ctx => {
  * The first tweet of a user
  */
 router.get('/statuses/:user/one/', async ctx => {
-    let twitterClient = new TwitterClient({}, ApiCache);
-    let user = new User();
-    let apiCache = new ApiCache();
+    let twitterClient = new TwitterClient({}, ApiCache),
+        user = new User(),
+        apiCache = new ApiCache();
     user.name = ctx.params.user;
 
     let pushUser = name => {
@@ -142,9 +137,6 @@ router.get('/statuses/:user/one/', async ctx => {
     };
 
     await pushUser(user.name);
-
-    //await apiCache.deleteUserViews(user.name);
-    //process.exit();
 
     let tweet = await apiCache.getFirstTweet(user.name);
     await setUsernameView(user.name);
@@ -184,6 +176,25 @@ let offsetTranslateToTweets = offset => {
         twsSeq = {start: start, end: end};
     }
     return twsSeq;
+};
+
+/**
+ * Util function
+ *
+ * @param user
+ */
+let cacheCleaner = async user => {
+    let cachedParams = {
+        since: user.since,
+        until: user.until,
+        count: user.count,
+        user: user.name
+    };
+    apiCache = new ApiCache();
+    await apiCache.deleteUserViews(user.name);
+    await apiCache.deleteFirstTweet(user.name);
+    await apiCache.destroy(cachedParams);
+    process.exit();
 };
 
 export default router
