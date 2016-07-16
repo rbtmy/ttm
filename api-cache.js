@@ -1,6 +1,6 @@
 import empty from 'is-empty';
 import Redis from 'ioredis';
-import redis from './configs/redis';
+import {redisInstance} from './configs/redis';
 import hash from 'object-hash';
 
 /**
@@ -14,7 +14,7 @@ export default class ApiCache {
      * Methods of caching data API
      */
     constructor() {
-        this.redis = redis;
+        this.redis = redisInstance();
     }
 
     /**
