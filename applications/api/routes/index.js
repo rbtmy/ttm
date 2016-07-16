@@ -122,7 +122,7 @@ router.post('/statuses/', async ctx => {
 /**
  * The first tweet of a user
  */
-router.get('/statuses/:user/one/', async ctx => {
+router.get('/statuses/first/:user', async ctx => {
     let twitterClient = new TwitterClient({}, ApiCache),
         user = new User(),
         apiCache = new ApiCache();
