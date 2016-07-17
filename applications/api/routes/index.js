@@ -12,6 +12,9 @@ const router = new Router();
 const firstTweetCountSearchedTweets = 3500;
 const offsetPage = 18;
 const redis = redisInstance();
+const limitRestriction = 10;
+
+export {limitRestriction}
 
 /**
  *
@@ -120,7 +123,7 @@ router.post('/statuses/', async ctx => {
 });
 
 /**
- * The first tweet of a user
+ * Get first tweet of a user
  */
 router.get('/statuses/first/:user', async ctx => {
     let twitterClient = new TwitterClient({}, ApiCache),
@@ -153,34 +156,42 @@ router.get('/statuses/first/:user', async ctx => {
     }
 });
 
+/**
+ * Get first n <= restrictionLimit tweets
+ */
 router.get('/statuses/first/:user/:limit/', async ctx => {
     let twitterClient = new TwitterClient({}, ApiCache),
         user = new User(),
         apiCache = new ApiCache(),
         limit = ctx.params.limit;
-    user.name = ctx.params.user;
 
-    let pushUser = name => {
-        if (typeof name !== 'undefined') {
-            user.name = name;
-            user.count = firstTweetCountSearchedTweets;
-            twitterClient.user = user;
+    if (parseInt(limit) <= limitRestriction) {
+        user.name = ctx.params.user;
+
+        let pushUser = name => {
+            if (typeof name !== 'undefined') {
+                user.name = name;
+                user.count = firstTweetCountSearchedTweets;
+                twitterClient.user = user;
+            }
+        };
+
+        await pushUser(user.name);
+
+        let tweet = await apiCache.getFirstLimitTweets(user.name, limit);
+
+        await setUsernameView(user.name);
+
+        if (tweet === null) {
+            await twitterClient.fetchOne();
+            tweet = await twitterClient.getFirstLimitTweet(limit);
+            await apiCache.setFirstLimitTweet(user.name, tweet, limit);
+            ctx.body = JSON.stringify(tweet);
+        } else {
+            ctx.body = JSON.stringify(tweet);
         }
-    };
-
-    await pushUser(user.name);
-
-    let tweet = await apiCache.getFirstLimitTweets(user.name, limit);
-
-    await setUsernameView(user.name);
-
-    if (tweet === null) {
-        await twitterClient.fetchOne();
-        tweet = await twitterClient.getFirstTweet();
-        await apiCache.setFirstTweet(user.name, tweet);
-        ctx.body = JSON.stringify(tweet);
     } else {
-        ctx.body = JSON.stringify(tweet);
+        ctx.body = JSON.stringify([]);
     }
 });
 
@@ -217,7 +228,7 @@ let offsetTranslateToTweets = offset => {
  *
  * @param user
  */
-let cacheCleaner = async user => {
+async function cacheCleaner(user) {
     let cachedParams = {
         since: user.since,
         until: user.until,
@@ -227,8 +238,8 @@ let cacheCleaner = async user => {
     apiCache = new ApiCache();
     await apiCache.deleteUserViews(user.name);
     await apiCache.deleteFirstTweet(user.name);
+    await apiCache.deleteFirstLimitTweets(user.name);
     await apiCache.destroy(cachedParams);
-    process.exit();
 };
 
 export default router

@@ -2,6 +2,7 @@ import empty from 'is-empty';
 import Redis from 'ioredis';
 import {redisInstance} from './configs/redis';
 import hash from 'object-hash';
+import {limitRestriction} from './applications/api/routes/index';
 
 /**
  * ApiCache class
@@ -70,15 +71,31 @@ export default class ApiCache {
         if (limit === undefined) {
             limit = 1;
         }
-        if (empty(username) === false && empty(tweet) === false) {
-            await this.redis.set(`${username}-${limit}`, JSON.stringify(tweet));
+        if (empty(username) === false && empty(tweets) === false) {
+            for (let i = limit; i > 0; i--) {
+                await this.redis.set(`${username}-${i}`, JSON.stringify(tweets.slice(-1 *i)));
+            }
+
             return true;
         }
         return false;
     }
 
     /**
-     * 
+     *
+     * @param username
+     */
+    async deleteFirstLimitTweets(username) {
+        console.log(username);
+        if (empty(username) === false) {
+            for (let i = 1; i <= limitRestriction; i++) {
+                await this.redis.del(`${username}-${i}`);
+            }
+        }
+    }
+
+    /**
+     *
      * @param username
      * @param limit
      * @returns {Promise<T>|Promise}
