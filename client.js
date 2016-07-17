@@ -95,6 +95,19 @@ export default class TwitterClient {
     }
 
     /**
+     * 
+     * @param limit
+     * @returns {T[]|Array.<T>}
+     */
+    getFirstLimitTweet(limit) {
+        if (limit !== undefined) {
+            limit = 1;
+        }
+        let tweets = this._tweets.slice(parseInt(limit) * -1);
+        return tweets;
+    }
+
+    /**
      *
      * @returns {Promise<T>|Promise}
      */

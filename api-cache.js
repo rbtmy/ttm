@@ -62,6 +62,46 @@ export default class ApiCache {
     /**
      *
      * @param username
+     * @param tweets
+     * @param limit
+     * @returns {boolean}
+     */
+    async setFirstLimitTweet(username, tweets, limit) {
+        if (limit === undefined) {
+            limit = 1;
+        }
+        if (empty(username) === false && empty(tweet) === false) {
+            await this.redis.set(`${username}-${limit}`, JSON.stringify(tweet));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 
+     * @param username
+     * @param limit
+     * @returns {Promise<T>|Promise}
+     */
+    async getFirstLimitTweets(username, limit) {
+        return new Promise((resolve, reject) => {
+            if (empty(username) === true) {
+                reject({});
+            }
+            if (limit === undefined) {
+                limit = 1;
+            }
+            this.redis.get(`${username}-${limit}`).then(result => {
+                resolve(JSON.parse(result));
+            }, error => {
+                reject({});
+            });
+        });
+    }
+
+    /**
+     *
+     * @param username
      * @param tweet
      * @returns {boolean}
      */

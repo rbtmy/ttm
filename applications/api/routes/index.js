@@ -125,7 +125,8 @@ router.post('/statuses/', async ctx => {
 router.get('/statuses/first/:user', async ctx => {
     let twitterClient = new TwitterClient({}, ApiCache),
         user = new User(),
-        apiCache = new ApiCache();
+        apiCache = new ApiCache(),
+        limit = ctx.params.limit;
     user.name = ctx.params.user;
 
     let pushUser = name => {
@@ -139,7 +140,40 @@ router.get('/statuses/first/:user', async ctx => {
     await pushUser(user.name);
 
     let tweet = await apiCache.getFirstTweet(user.name);
+
     await setUsernameView(user.name);
+
+    if (tweet === null) {
+        await twitterClient.fetchOne();
+        tweet = await twitterClient.getFirstTweet();
+        await apiCache.setFirstTweet(user.name, tweet);
+        ctx.body = JSON.stringify(tweet);
+    } else {
+        ctx.body = JSON.stringify(tweet);
+    }
+});
+
+router.get('/statuses/first/:user/:limit/', async ctx => {
+    let twitterClient = new TwitterClient({}, ApiCache),
+        user = new User(),
+        apiCache = new ApiCache(),
+        limit = ctx.params.limit;
+    user.name = ctx.params.user;
+
+    let pushUser = name => {
+        if (typeof name !== 'undefined') {
+            user.name = name;
+            user.count = firstTweetCountSearchedTweets;
+            twitterClient.user = user;
+        }
+    };
+
+    await pushUser(user.name);
+
+    let tweet = await apiCache.getFirstLimitTweets(user.name, limit);
+
+    await setUsernameView(user.name);
+
     if (tweet === null) {
         await twitterClient.fetchOne();
         tweet = await twitterClient.getFirstTweet();
