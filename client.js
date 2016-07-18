@@ -41,7 +41,6 @@ export default class TwitterClient {
         this._pointer = '';
         this._tweets = [];
         this._block = false;
-        this._firstTweet = {};
         this._yearPointer = 2005;
         this._cache = new cache();
         this._cachedParams = {};
@@ -103,8 +102,7 @@ export default class TwitterClient {
         if (limit === undefined) {
             limit = 1;
         }
-        let tweets = this._tweets.slice(parseInt(limit) * -1);
-        return tweets;
+        return this._tweets.slice(parseInt(limit) * -1);
     }
 
     /**
