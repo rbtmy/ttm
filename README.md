@@ -2,9 +2,11 @@
 
 ### How to use this app
 
-* git clone 
+* git clone repo 
 * npm i
-* nodemon index.js
-* start the server with the API
+* brew install redis-server
+* copy host & port
+* copy db.example.js db.js with host and port
+* npm run watch/ npm run start
 
 
