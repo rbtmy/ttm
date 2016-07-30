@@ -6,8 +6,8 @@ const router = new Router();
  */
 
 router.get('/', async ctx => {
-    body = await parser(ctx);
-    console.log(body);
+    // body = await parser(ctx);
+    // console.log(body);
     await ctx.render('index');
 });
 

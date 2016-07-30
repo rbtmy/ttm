@@ -6,26 +6,56 @@
  import siteRoutes from './applications/site/routes/index'
  import Tweet from './models/tweet'
  import session from "koa-session2";
- import Store from "./store.js";
  import redis from './configs/redis';
- import userAgent from '../koa2-useragent';
+ import userAgent from 'koa2-useragent';
+ import co from 'co';
+ import render from 'koa-ejs';
+ import path from 'path';
 
  const app = new Koa();
 
- // app.use(userAgent());
+ /**
+  *  Template for instagram
+  *
+  */
+
+ // var InstagramPosts, streamOfPosts;
+ // InstagramPosts = require('instagram-screen-scrape').InstagramPosts;
  //
- // app.use((ctx) => {
- //     console.log(this.state.userAgent);
+ // streamOfPosts = new InstagramPosts({
+ //  username: 'greenlool'
+ // });
+ //
+ // streamOfPosts.on('data', function(post) {
+ //     var time = new Date(post.time * 1000);
+ //     console.log([
+ //         "greenlool's post from ",
+ //         time.toLocaleDateString(),
+ //         " got ",
+ //         post.likes,
+ //         " like(s), and ",
+ //         post.comments,
+ //         " comment(s)",
+ //         "media: ",
+ //         post.media
+ //     ].join(''));
  // });
 
- app.use(views(`${__dirname}/views`, { extension: 'jade' }));
+ app.use(userAgent());
+
+ app.use(async (ctx, next) => {
+     console.log(ctx.userAgent.version);
+     await next();
+ });
+
+ app.use(views(`${__dirname}/views`, { extension: 'ejs' }));
  app.use(serve(`${__dirname}/public`));
 
  app.use(apiRoutes.routes());
  app.use(siteRoutes.routes());
 
  app.listen(3000, () => {
-     console.log('Server running at http://localhost:3000')
+     console.log('Server running at http://localhost:3000');
  });
 
  export default app
