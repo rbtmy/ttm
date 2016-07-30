@@ -1,8 +1,8 @@
 $(function () {
-    let tweetFetchButton = document.getElementById('ttm-submit-btn');
     let sinceParamButton = document.getElementById('ttm-since-btn');
     let untilParamButton = document.getElementById('ttm-until-btn');
     let userParamButton = document.getElementById('ttm-user-btn');
+    let tweetFetchButton = document.getElementById('ttm-submit-btn');
     let offset = 0;
 
     tweetFetchButton.addEventListener('click', function () {
@@ -19,17 +19,14 @@ $(function () {
         };
 
         $.ajax({
-            type: "POST",
-            url: url,
+            url: `/statuses/first/${params.user}`,
+            type: 'GET',
             data: params,
-            success: function () {
-                alert('ok');
-            },
-            dataType: dataType
-        }).done(function () {
-            
-        }).fail(function () {
+            success: function() {
 
+            }
+        }).done(function (msg) {
+            alert(msg);
         });
-    })
-})
+    });
+});

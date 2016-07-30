@@ -4,6 +4,7 @@
  import bodyParser from 'koa-bodyparser'
  import apiRoutes from './applications/api/routes/index'
  import siteRoutes from './applications/site/routes/index'
+ import mount from 'koa-mount';
  import Tweet from './models/tweet'
  import session from "koa-session2";
  import redis from './configs/redis';
@@ -44,12 +45,15 @@
  app.use(userAgent());
 
  app.use(async (ctx, next) => {
-     console.log(ctx.userAgent.version);
+     // console.log(ctx.userAgent.version);
      await next();
  });
-
- app.use(views(`${__dirname}/views`, { extension: 'ejs' }));
+ //app.use(convert(require('koa-static')(__dirname + '/public')));
  app.use(serve(`${__dirname}/public`));
+ app.use(views(`${__dirname}/views`, { extension: 'ejs' }));
+
+ //app.use(mount('/static', serve('public')));
+ app.use(bodyParser());
 
  app.use(apiRoutes.routes());
  app.use(siteRoutes.routes());
