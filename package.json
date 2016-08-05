@@ -42,6 +42,8 @@
     "babel-preset-stage-3": "^6.11.0",
     "babel-register": "^6.7.2",
     "chai": "^3.5.0",
+    "gulp": "^3.9.1",
+    "gulp-sass": "^2.3.2",
     "nodemon": "^1.9.1"
   }
 }

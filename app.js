@@ -4,14 +4,12 @@
  import bodyParser from 'koa-bodyparser'
  import apiRoutes from './applications/api/routes/index'
  import siteRoutes from './applications/site/routes/index'
- import mount from 'koa-mount';
  import Tweet from './models/tweet'
  import session from "koa-session2";
  import redis from './configs/redis';
  import userAgent from 'koa2-useragent';
  import co from 'co';
  import render from 'koa-ejs';
- import path from 'path';
 
  const app = new Koa();
 

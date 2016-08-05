@@ -1,0 +1,13 @@
+//Копипаста с каких то grid стилей
+@import "vars";
+
+@import "mixin";
+
+// Components
+@import "column";
+@import "grid";
+@import "row";
+@import "text";
+@import "main";
+
+@include init($breakpoints, $columns);
