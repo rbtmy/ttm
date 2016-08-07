@@ -7,6 +7,7 @@
 * brew install redis-server
 * copy host & port
 * copy db.example.js db.js with host and port
+* gulp
 * npm run watch/ npm run start
 
 
